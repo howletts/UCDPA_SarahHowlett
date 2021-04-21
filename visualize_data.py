@@ -38,6 +38,9 @@ plt.show()
 # attraction with most tags in Dublin
 # county with most activities in each province
 
+#compare percentage of unknown phone numbers per county
+#compare percentage of unknown urls numbers per county
+
 a = "end"
 # Plot first column of df
 #pd.DataFrame.hist(df.ix[:, 0:1])

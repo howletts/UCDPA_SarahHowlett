@@ -3,8 +3,11 @@ import requests
 from sqlalchemy import create_engine
 
 # url for failte ireland API's
-url_activities = "https://failteireland.azure-api.net/opendata-api/v1/activities"
-url_accomodation = "https://failteireland.azure-api.net/opendata-api/v1/accommodation"
+url_activities = \
+    "https://failteireland.azure-api.net/opendata-api/v1/activities?$filter=search.ismatch('Surfing','tags') " \
+    "and search.ismatch('Kitesurfing','tags') and search.ismatch('Windsurfing','tags')"
+accommodation_csv_url = 'https://failteireland.azure-api.net/opendata-api/v1/accommodation/csv'
+attractions_csv_url = 'https://failteireland.azure-api.net/opendata-api/v1/attractions/csv'
 
 
 # create a reusable function to call API's and load data into a Pandas DataFrome
@@ -17,23 +20,28 @@ def make_api_call(url):
     return df_results
 
 
+def download_csv(url):
+    df_results = pd.read_csv(url, sep=',')
+    return df_results
+
+
 api_call = False  # Set api_call to false for testing purposes, so not calling it over and over
 if api_call:
-    df_activities = make_api_call(url_activities)
-    df_activities.to_pickle("./data/pickle_df_activities.pkl")
-    df_accomodation = make_api_call(url_accomodation)
-    df_accomodation.to_pickle("./data/pickle_df_accomodation.pkl")
-df_activities = pd.read_pickle("./data/pickle_df_activities.pkl")
-df_accomodation = pd.read_pickle("./data/pickle_df_accomodation.pkl")
+    df_surf_activities = make_api_call(url_activities)
+    df_surf_activities.to_pickle("./data/pickle_df_surf_activities.pkl")
+df_surf_activities = pd.read_pickle("./data/pickle_df_surf_activities.pkl")
 
 
 # Import data from a CSV file and load data into the df_attractions Pandas DataFrome
 read_csv_url = False  # to skip constantly call this for testing
 if read_csv_url:
-    attractions_csv = 'https://failteireland.azure-api.net/opendata-api/v1/attractions/csv'
-    df_attractions = pd.read_csv(attractions_csv, sep=',')
+    df_attractions = download_csv(attractions_csv_url)
     df_attractions.to_pickle("./data/pickle_df_attractions.pkl")
+    df_accommodation = download_csv(accommodation_csv_url)
+    df_accommodation.to_pickle("./data/pickle_df_accommodation.pkl")
 df_attractions = pd.read_pickle("./data/pickle_df_attractions.pkl")
+df_accommodation = pd.read_pickle("./data/pickle_df_accommodation.pkl")
+
 
 # Import data from a relational database into a dataframe
 engine = create_engine('sqlite:///data///sqlliteDB_ucdproj.db')
@@ -48,4 +56,6 @@ if read_html:
     df_from_wikipedia.to_pickle("./data/pickle_df_from_wikipedia.pkl")
 
 df_area_type = pd.read_pickle("./data/pickle_df_from_wikipedia.pkl")
+
+a = "break"
 

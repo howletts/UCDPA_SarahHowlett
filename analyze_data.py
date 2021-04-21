@@ -1,16 +1,30 @@
 import import_data as data
 import pandas as pd
 
+df_surf_act = data.df_surf_activities
 df_attractions = data.df_attractions
-df_accomodation = data.df_accomodation
-df_activities = data.df_activities
+df_accommodation = data.df_accommodation
 df_county_in_provence = data.df_county_province
-df_region_type = data.df_area_type
+df_region_type = data.df_area_type[data.df_area_type['Council'] == 'City'][["Core County", "Council"]]
 
 # create a reusable function to extract the value of the 'addressRegion' from a dictionary
 def extract_region(address):
     address_region = address['addressRegion']
     return address_region
+
+########################################
+#  insight 1 use df_surf_activities and df_region_type
+########################################
+# extract the address_region from the 'address' column for joining
+df_surf_act['address_region'] = df_surf_act['address'].apply(extract_region)
+df_surf_act = df_surf_act.sort_values(["name", "address_region"], ascending=True)
+df_surf_act = df_surf_act.drop_duplicates(["name", "address_region"], keep='last')
+df_surf_act = df_surf_act.loc[:, ["name", "address_region", "tags"]]
+df_surf_venue_per_region = df_surf_act.groupby(["address_region"]).agg(count_venue=pd.NamedAgg(column="name", aggfunc="count")).reset_index(level=0)
+df_surf_per_cnty = df_surf_venue_per_region.merge(df_region_type, how = 'left', left_on=['address_region'], right_on=['Core County'])
+#remove column
+#replace nan with no city
+
 
 # get distinct tags in tag list
 def count_tags(tags):
@@ -19,17 +33,18 @@ def count_tags(tags):
     return dist_tag_count
 
 # extract the address_region from the 'address' column for joining
-df_activities['address_region'] = df_activities['address'].apply(extract_region)
+
 df_accomodation['address_region'] = df_accomodation['address'].apply(extract_region)
 
 # sorting by "Name" first and then region "AddressRegion" and populate the df_attractions DataFrame
 df_attractions = df_attractions.sort_values(["Name", "AddressRegion"], ascending=True)
-df_activities = df_activities.sort_values(["Name", "AddressRegion"], ascending=True)
-df_accomodation = df_accomodation.sort_values(["Name", "AddressRegion"], ascending=True)
+df_accomodation = df_accomodation.sort_values(["name", "address_region"], ascending=True)
+
+
+
 
 # drop duplicates
 df_attractions = df_attractions.drop_duplicates(["Name", "AddressRegion"], keep='last')
-df_activities = df_activities.drop_duplicates(["Name", "AddressRegion"], keep='last')
 df_accomodation = df_accomodation.drop_duplicates(["Name", "AddressRegion"], keep='last')
 
 ##fill na,
@@ -38,6 +53,11 @@ df_accomodation = df_accomodation.drop_duplicates(["Name", "AddressRegion"], kee
 
 # select only the "Name", "AddressRegion", "Tags" columns using the .loc
 df_attractions = df_attractions.loc[:, ["Name", "AddressRegion", "Tags"]]
+df_accomodation = df_accomodation.loc[:, ["Name", "AddressRegion", "Tags"]]
+
+df_attractions.isnull().values.any()
+df_accomodation.isnull().values.any()
+
 
 # groupby "AddressRegion" and get the count (Name column) per County ("AddressRegion")
 df_attractions_per_cnty = df_attractions.groupby(["AddressRegion"]).agg(number_attractions=pd.NamedAgg(column="Name", aggfunc="count"))
@@ -45,8 +65,7 @@ df_accomodation_per_cnty = df_accomodation.groupby(["AddressRegion"]).agg(number
 # check if the County ("AddressRegion") is the index
 print(df_attractions_per_cnty.index)
 
-# add a county column for joining
-df_activities['county'] = df_activities['address'].apply(extract_region)
+
 
 # set the index to "county"
 df_county_in_provence = df_county_in_provence.set_index("county")
