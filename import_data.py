@@ -57,5 +57,4 @@ if read_html:
 
 df_area_type = pd.read_pickle("./data/pickle_df_from_wikipedia.pkl")
 
-a = "break"
 
