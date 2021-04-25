@@ -21,12 +21,6 @@ def get_province(value):
     province_lkup = df_county_in_province.to_dict()['province']
     return province_lkup[value]
 
-def get_lollipop_colours(df_col):
-    # Example of using python list comprehsion
-    colours = []
-    [colours.append('r') if value == 'City' else colours.append('g') for value in df_col.to_list()]
-    return colours
-
 
 ########################################
 #  1. Analyse and process the activities dataset, specifically for venues suitable for all 3 surfing types
@@ -71,7 +65,7 @@ df_county_in_province = df_county_in_province.set_index('county')
 df_agg_attractions = df_agg_attractions.merge(df_county_in_province, how = 'left', left_index = True, right_index = True)
 
 ########################################
-#  Analyse and process data for figure 3
+#  Analyse and process the accommodation dataset
 ########################################
 
 # drop duplicates
@@ -84,33 +78,29 @@ df_accommodation = df_accommodation.loc[:, ["Name", "AddressRegion"]]
 df_accommodation = df_accommodation.sort_values(["Name", "AddressRegion"], ascending=True)
 # groupby "AddressRegion" and get the count (Name column) per County ("AddressRegion"), has index as default
 df_accommodation["Province"] = df_accommodation["AddressRegion"].apply(get_province)
-
-########################################
-#  Analyse and process data for figure 4
-########################################
-
 df_agg_accommodation = df_accommodation.groupby(["AddressRegion"]).agg(number_attractions=pd.NamedAgg(column="Name",
                                                                             aggfunc="count"))
 df_agg_accommodation = df_agg_accommodation.merge(df_county_in_province, how = 'left', left_index = True, right_index = True)
 
-
+#########################
+#Analysis using numpy
+#########################
 df_attractions_leinster = df_agg_attractions[df_agg_attractions["province"] == "Leinster"]
 df_accommodation_leinster = df_agg_accommodation[df_agg_accommodation["province"] == "Leinster"]
 
-# use numpy to check for correlation between the lists - 0.97128864 means it is a strong positive correlation
-np.corrcoef(df_attractions_leinster["number_attractions"], df_accommodation_leinster["number_attractions"])
+# use numpy to check for correlation between the lists - result is 0.97128864 means it is a strong positive correlation
+print(np.corrcoef(df_attractions_leinster["number_attractions"], df_accommodation_leinster["number_attractions"]))
 
-# use numpy to
+# use numpy to get the percentage of the accommodation in each county
 dict_accommod_percent = {}
 total = np.sum(df_agg_accommodation["number_attractions"])
 array_accommod_counts = np.array(df_agg_accommodation["number_attractions"])
-
 array_accommod_percent = np.rint(((array_accommod_counts * 100) / total)).tolist()
 counties =  (df_agg_accommodation.index).tolist()
 for i, item in enumerate(counties):
     dict_accommod_percent[item] = array_accommod_percent[i]
 
-a = 0
+print(dict_accommod_percent)
 
 
 

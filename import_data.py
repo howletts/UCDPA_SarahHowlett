@@ -20,12 +20,12 @@ def make_api_call(url):
     return df_results
 
 
-def download_csv(url):
+def import_csv(url):
     df_results = pd.read_csv(url, sep=',')
     return df_results
 
 
-api_call = False  # Set api_call to false for testing purposes, so not calling it over and over
+api_call = True  # Set api_call to false for testing purposes, so not calling it over and over
 if api_call:
     df_surf_activities = make_api_call(url_activities)
     df_surf_activities.to_pickle("./data/pickle_df_surf_activities.pkl")
@@ -33,11 +33,11 @@ df_surf_activities = pd.read_pickle("./data/pickle_df_surf_activities.pkl")
 
 
 # Import data from a CSV file and load data into the df_attractions Pandas DataFrome
-read_csv_url = False  # to skip constantly call this for testing
+read_csv_url = True  # to skip constantly call this for testing
 if read_csv_url:
-    df_attractions = download_csv(attractions_csv_url)
+    df_attractions = import_csv(attractions_csv_url)
     df_attractions.to_pickle("./data/pickle_df_attractions.pkl")
-    df_accommodation = download_csv(accommodation_csv_url)
+    df_accommodation = import_csv(accommodation_csv_url)
     df_accommodation.to_pickle("./data/pickle_df_accommodation.pkl")
 df_attractions = pd.read_pickle("./data/pickle_df_attractions.pkl")
 df_accommodation = pd.read_pickle("./data/pickle_df_accommodation.pkl")
@@ -49,7 +49,7 @@ df_county_province = pd.read_sql_query('SELECT * FROM COUNTY_PROVINCE_LINK WHERE
 
 
 # Importing data from html Web Scrapping into a Pandas DataFrame
-read_html = False  # to skip constantly call this for testing
+read_html = True  # to skip constantly call this for testing
 if read_html:
     url = 'https://en.wikipedia.org/wiki/List_of_cities,_boroughs_and_towns_in_the_Republic_of_Ireland'
     df_from_wikipedia = pd.read_html(url, header=[0], flavor='bs4')[2]
